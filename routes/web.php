@@ -13,6 +13,14 @@ Route::get('/', function() {
     return redirect('/login');
 });
 
+Route::middleware(['auth', 'employee'])->prefix('employee')->group(function() {
+    Route::get('/dashboard', [EmployeeController::class, 'dashboard']);
+
+    // Attendance
+    Route::post('/attendance/check-in', [EmployeeController::class, 'checkIn']);
+    Route::post('/attendance/check-out', [EmployeeController::class, 'checkOut']);
+    Route::get('/attendance', [EmployeeController::class, 'myAttendance']);
+});
 Route::middleware('auth')->get('/redirect', function() {
     if(auth()->user()->role == 'superadmin' || auth()->user()->role == 'hr') {
         return redirect('/hr/dashboard');
@@ -54,8 +62,3 @@ Route::middleware(['auth', 'hr'])->prefix('hr')->group(function() {
     Route::delete('/employees/{id}', [HrController::class, 'destroyEmployee']);
 });
 
-Route::middleware(['auth', 'employee'])->prefix('employee')->group(function() {
-    Route::get('/dashboard', function() {
-        return view('employee.dashboard');
-    });
-});
