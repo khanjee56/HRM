@@ -20,6 +20,11 @@ Route::middleware(['auth', 'employee'])->prefix('employee')->group(function() {
     Route::post('/attendance/check-in', [EmployeeController::class, 'checkIn']);
     Route::post('/attendance/check-out', [EmployeeController::class, 'checkOut']);
     Route::get('/attendance', [EmployeeController::class, 'myAttendance']);
+    Route::get('/leaves', [EmployeeController::class, 'myLeaves']);
+Route::get('/leaves/apply', [EmployeeController::class, 'applyLeaveForm']);
+Route::post('/leaves/apply', [EmployeeController::class, 'applyLeave']);
+Route::get('/payslips', [EmployeeController::class, 'myPayslips']);
+Route::get('/payslips/{id}/download', [EmployeeController::class, 'downloadPayslip']);
 });
 Route::middleware('auth')->get('/redirect', function() {
     if(auth()->user()->role == 'superadmin' || auth()->user()->role == 'hr') {
@@ -60,5 +65,22 @@ Route::middleware(['auth', 'hr'])->prefix('hr')->group(function() {
     Route::get('/employees/{id}/edit', [HrController::class, 'editEmployee']);
     Route::put('/employees/{id}', [HrController::class, 'updateEmployee']);
     Route::delete('/employees/{id}', [HrController::class, 'destroyEmployee']);
+    // Leave Management
+Route::get('/leaves', [HrController::class, 'leaves']);
+Route::put('/leaves/{id}/approve', [HrController::class, 'approveLeave']);
+Route::put('/leaves/{id}/reject', [HrController::class, 'rejectLeave']);
+
+// Leave Types
+Route::get('/leave-types', [HrController::class, 'leaveTypes']);
+Route::post('/leave-types', [HrController::class, 'storeLeaveType']);
+Route::delete('/leave-types/{id}', [HrController::class, 'destroyLeaveType']);
+// Payroll
+Route::get('/payroll', [HrController::class, 'payroll']);
+Route::post('/payroll/generate', [HrController::class, 'generatePayslip']);
+
+// Salaries
+Route::get('/salaries', [HrController::class, 'salaries']);
+Route::get('/salaries/{id}/edit', [HrController::class, 'editSalary']);
+Route::put('/salaries/{id}', [HrController::class, 'updateSalary']);
 });
 

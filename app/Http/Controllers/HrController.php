@@ -9,6 +9,10 @@ use App\Models\User;
 use App\Models\Salary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Leave;
+use App\Models\LeaveType;
+
+
 
 class HrController extends Controller
 {
@@ -254,4 +258,179 @@ class HrController extends Controller
         $employee->user->delete();
         return redirect('/hr/employees')->with('success', 'Employee deleted!');
     }
+
+// View All Leave Requests
+public function leaves()
+{
+    $leaves = Leave::with('employee.user', 'leaveType')
+                ->latest()
+                ->get();
+
+    return view('hr.leaves.index', compact('leaves'));
+}
+
+// Approve Leave
+public function approveLeave($id)
+{
+    $leave = Leave::findOrFail($id);
+    $leave->update(['status' => 'approved']);
+    return redirect('/hr/leaves')->with('success', 'Leave approved successfully!');
+}
+
+// Reject Leave
+public function rejectLeave(Request $request, $id)
+{
+    $leave = Leave::findOrFail($id);
+    $leave->update([
+        'status'   => 'rejected',
+        'hr_notes' => $request->hr_notes,
+    ]);
+    return redirect('/hr/leaves')->with('success', 'Leave rejected!');
+}
+
+// Leave Types Management
+public function leaveTypes()
+{
+    $leaveTypes = LeaveType::all();
+    return view('hr.leave-types.index', compact('leaveTypes'));
+}
+
+public function storeLeaveType(Request $request)
+{
+    $request->validate([
+        'name'         => 'required|unique:leave_types',
+        'days_allowed' => 'required|numeric',
+    ]);
+
+    LeaveType::create($request->only('name', 'days_allowed'));
+    return redirect('/hr/leave-types')->with('success', 'Leave type added!');
+}
+
+public function destroyLeaveType($id)
+{
+    LeaveType::findOrFail($id)->delete();
+    return redirect('/hr/leave-types')->with('success', 'Leave type deleted!');
+}
+use App\Models\Payslip;
+use App\Models\Attendance;
+
+// Show Payroll Page
+public function payroll()
+{
+    $employees = Employee::with('user', 'salary')->where('status', 'active')->get();
+    $months = [
+        1 => 'January', 2 => 'February', 3 => 'March',
+        4 => 'April', 5 => 'May', 6 => 'June',
+        7 => 'July', 8 => 'August', 9 => 'September',
+        10 => 'October', 11 => 'November', 12 => 'December'
+    ];
+
+    $payslips = Payslip::with('employee.user')->latest()->get();
+
+    return view('hr.payroll.index', compact('employees', 'months', 'payslips'));
+}
+
+// Generate Payslip
+public function generatePayslip(Request $request)
+{
+    $request->validate([
+        'employee_id' => 'required',
+        'month'       => 'required|integer|between:1,12',
+        'year'        => 'required|integer',
+    ]);
+
+    $employee = Employee::with('salary')->findOrFail($request->employee_id);
+
+    // Check if payslip already generated
+    $existing = Payslip::where('employee_id', $employee->id)
+                ->where('month', $request->month)
+                ->where('year', $request->year)
+                ->first();
+
+    if($existing) {
+        return redirect('/hr/payroll')->with('error', 'Payslip already generated for this month!');
+    }
+
+    // Get working days in that month
+    $daysInMonth = \Carbon\Carbon::create($request->year, $request->month)->daysInMonth;
+
+    // Get attendance for that month
+    $presentDays = Attendance::where('employee_id', $employee->id)
+                    ->whereMonth('date', $request->month)
+                    ->whereYear('date', $request->year)
+                    ->whereIn('status', ['present', 'late'])
+                    ->count();
+
+    $leaveDays = \App\Models\Leave::where('employee_id', $employee->id)
+                    ->where('status', 'approved')
+                    ->whereMonth('start_date', $request->month)
+                    ->whereYear('start_date', $request->year)
+                    ->sum('total_days');
+
+    $absentDays = $daysInMonth - $presentDays - $leaveDays;
+    $absentDays = max(0, $absentDays); // Never negative
+
+    // Calculate salary
+    $salary = $employee->salary;
+    $perDaySalary = $salary->basic_salary / $daysInMonth;
+    $absentDeduction = $perDaySalary * $absentDays;
+
+    $grossSalary = $salary->gross_salary;
+    $totalDeductions = $salary->total_deductions + $absentDeduction;
+    $netSalary = $grossSalary - $totalDeductions;
+
+    // Create Payslip
+    Payslip::create([
+        'employee_id'      => $employee->id,
+        'salary_id'        => $salary->id,
+        'month'            => $request->month,
+        'year'             => $request->year,
+        'gross_salary'     => $grossSalary,
+        'total_deductions' => $totalDeductions,
+        'net_salary'       => $netSalary,
+        'working_days'     => $daysInMonth,
+        'present_days'     => $presentDays,
+        'absent_days'      => $absentDays,
+        'leave_days'       => $leaveDays,
+        'status'           => 'generated',
+    ]);
+
+    return redirect('/hr/payroll')->with('success', 'Payslip generated successfully!');
+}
+
+// Show Salary Structure Management
+public function salaries()
+{
+    $employees = Employee::with('user', 'salary')->get();
+    return view('hr.salaries.index', compact('employees'));
+}
+
+// Edit Salary
+public function editSalary($id)
+{
+    $employee = Employee::with('user', 'salary')->findOrFail($id);
+    return view('hr.salaries.edit', compact('employee'));
+}
+
+// Update Salary
+public function updateSalary(Request $request, $id)
+{
+    $employee = Employee::findOrFail($id);
+
+    $request->validate([
+        'basic_salary'        => 'required|numeric',
+        'house_allowance'     => 'required|numeric',
+        'transport_allowance' => 'required|numeric',
+        'medical_allowance'   => 'required|numeric',
+        'tax_deduction'       => 'required|numeric',
+        'other_deduction'     => 'required|numeric',
+    ]);
+
+    $employee->salary->update($request->only(
+        'basic_salary', 'house_allowance', 'transport_allowance',
+        'medical_allowance', 'tax_deduction', 'other_deduction'
+    ));
+
+    return redirect('/hr/salaries')->with('success', 'Salary updated successfully!');
+}
 }
