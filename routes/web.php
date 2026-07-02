@@ -15,6 +15,8 @@ Route::get('/', function() {
 
 Route::middleware(['auth', 'employee'])->prefix('employee')->group(function() {
     Route::get('/dashboard', [EmployeeController::class, 'dashboard']);
+    Route::get('/profile', [EmployeeController::class, 'profile']);
+Route::put('/profile', [EmployeeController::class, 'updateProfile']);
 
     // Attendance
     Route::post('/attendance/check-in', [EmployeeController::class, 'checkIn']);
@@ -87,5 +89,6 @@ Route::get('/reports', [HrController::class, 'reports']);
 Route::get('/reports/employees', [HrController::class, 'exportEmployees']);
 Route::post('/reports/attendance', [HrController::class, 'exportAttendance']);
 Route::post('/reports/payroll', [HrController::class, 'exportPayroll']);
+Route::get('/attendance', [HrController::class, 'attendance']);
 });
 

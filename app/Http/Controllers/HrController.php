@@ -204,6 +204,43 @@ class HrController extends Controller
 
         return redirect('/hr/employees')->with('success', 'Employee added successfully!');
     }
+    // HR View All Attendance
+public function attendance(Request $request)
+{
+    $employees = Employee::with('user')->where('status', 'active')->get();
+
+    $selectedEmployee = $request->employee_id;
+    $selectedMonth    = $request->month ?? now()->month;
+    $selectedYear     = $request->year ?? now()->year;
+
+    $attendances = Attendance::with('employee.user')
+        ->when($selectedEmployee, function($query) use ($selectedEmployee) {
+            return $query->where('employee_id', $selectedEmployee);
+        })
+        ->whereMonth('date', $selectedMonth)
+        ->whereYear('date', $selectedYear)
+        ->orderBy('date', 'desc')
+        ->get();
+
+    $months = [
+        1 => 'January', 2 => 'February', 3 => 'March',
+        4 => 'April', 5 => 'May', 6 => 'June',
+        7 => 'July', 8 => 'August', 9 => 'September',
+        10 => 'October', 11 => 'November', 12 => 'December'
+    ];
+
+    // Attendance Summary
+    $totalPresent  = $attendances->where('status', 'present')->count();
+    $totalLate     = $attendances->where('status', 'late')->count();
+    $totalAbsent   = $attendances->where('status', 'absent')->count();
+    $totalHalfDay  = $attendances->where('status', 'half-day')->count();
+
+    return view('hr.attendance.index', compact(
+        'attendances', 'employees', 'months',
+        'selectedEmployee', 'selectedMonth', 'selectedYear',
+        'totalPresent', 'totalLate', 'totalAbsent', 'totalHalfDay'
+    ));
+}
 
     public function showEmployee($id)
     {

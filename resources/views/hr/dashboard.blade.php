@@ -57,5 +57,28 @@
         </a>
     </div>
 </div>
+<div class="col-md-3 mb-4">
+    <div class="card stat-card" style="background: linear-gradient(135deg, #e83e8c, #6f42c1); color:white;">
+        <div class="card-body text-center">
+            @php
+                $todayPresent = \App\Models\Attendance::whereDate('date', today())
+                    ->where('status', '!=', 'absent')->count();
+            @endphp
+            <h2>{{ $todayPresent }}</h2>
+            <p class="mb-0">Present Today</p>
+        </div>
+    </div>
+</div>
+<div class="col-md-3 mb-4">
+    <div class="card stat-card" style="background: linear-gradient(135deg, #20c997, #0dcaf0); color:white;">
+        <div class="card-body text-center">
+            @php
+                $pendingLeaves = \App\Models\Leave::where('status', 'pending')->count();
+            @endphp
+            <h2>{{ $pendingLeaves }}</h2>
+            <p class="mb-0">Pending Leaves</p>
+        </div>
+    </div>
+</div>
 
 @endsection

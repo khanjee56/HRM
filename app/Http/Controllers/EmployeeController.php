@@ -11,6 +11,43 @@ use PDF;
 use App\Models\Payslip;
 class EmployeeController extends Controller
 {
+    // My Profile
+public function profile()
+{
+    $employee = Employee::with('user', 'department', 'designation', 'salary')
+                ->where('user_id', auth()->id())
+                ->firstOrFail();
+
+    return view('employee.profile', compact('employee'));
+}
+
+// Update Profile
+public function updateProfile(Request $request)
+{
+    $employee = Employee::where('user_id', auth()->id())->firstOrFail();
+
+    $request->validate([
+        'phone'   => 'nullable|string',
+        'address' => 'nullable|string',
+        'photo'   => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+    ]);
+
+    $photoPath = $employee->photo;
+    if($request->hasFile('photo')) {
+        $photoPath = $request->file('photo')->store('employees', 'public');
+    }
+
+    $employee->update([
+        'phone'   => $request->phone,
+        'address' => $request->address,
+        'photo'   => $photoPath,
+    ]);
+
+    // Update name
+    $employee->user->update(['name' => $request->name]);
+
+    return redirect('/employee/profile')->with('success', 'Profile updated successfully!');
+}
     // Employee Dashboard
     public function dashboard()
     {
