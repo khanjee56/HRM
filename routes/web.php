@@ -82,5 +82,10 @@ Route::post('/payroll/generate', [HrController::class, 'generatePayslip']);
 Route::get('/salaries', [HrController::class, 'salaries']);
 Route::get('/salaries/{id}/edit', [HrController::class, 'editSalary']);
 Route::put('/salaries/{id}', [HrController::class, 'updateSalary']);
+// Reports
+Route::get('/reports', [HrController::class, 'reports']);
+Route::get('/reports/employees', [HrController::class, 'exportEmployees']);
+Route::post('/reports/attendance', [HrController::class, 'exportAttendance']);
+Route::post('/reports/payroll', [HrController::class, 'exportPayroll']);
 });
 

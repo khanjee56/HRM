@@ -5,9 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Employee;
 use App\Models\Attendance;
 use Illuminate\Http\Request;
-    use App\Models\Leave;
+use App\Models\Leave;
 use App\Models\LeaveType;
-
+use PDF;
+use App\Models\Payslip;
 class EmployeeController extends Controller
 {
     // Employee Dashboard
@@ -145,7 +146,6 @@ public function applyLeave(Request $request)
 
     return redirect('/employee/leaves')->with('success', 'Leave application submitted successfully!');
 }
-use App\Models\Payslip;
 
 // My Payslips
 public function myPayslips()
@@ -173,7 +173,7 @@ public function downloadPayslip($id)
         10 => 'October', 11 => 'November', 12 => 'December'
     ];
 
-    $pdf = \PDF::loadView('employee.payslip-pdf', compact('payslip', 'months'));
+    $pdf = PDF::loadView('employee.payslip-pdf', compact('payslip', 'months'));
     return $pdf->download('payslip-' . $months[$payslip->month] . '-' . $payslip->year . '.pdf');
 }
 }

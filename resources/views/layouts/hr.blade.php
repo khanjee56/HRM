@@ -182,17 +182,9 @@
         <hr class="sidebar-divider">
         <span class="sidebar-section">Reports</span>
 
-        <a href="/hr/reports/employees" class="{{ request()->is('hr/reports/employees*') ? 'active' : '' }}">
-            <i class="fas fa-file-excel"></i> Employee Report
-        </a>
-
-        <a href="/hr/reports/attendance" class="{{ request()->is('hr/reports/attendance*') ? 'active' : '' }}">
-            <i class="fas fa-file-excel"></i> Attendance Report
-        </a>
-
-        <a href="/hr/reports/payroll" class="{{ request()->is('hr/reports/payroll*') ? 'active' : '' }}">
-            <i class="fas fa-file-excel"></i> Payroll Report
-        </a>
+     <a href="/hr/reports" class="{{ request()->is('hr/reports*') ? 'active' : '' }}">
+    <i class="fas fa-file-excel"></i> Reports & Exports
+</a>
 
         <hr class="sidebar-divider">
 

@@ -11,8 +11,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Leave;
 use App\Models\LeaveType;
-
-
+use App\Models\Payslip;
+use App\Models\Attendance;
+use App\Exports\EmployeeExport;
+use App\Exports\AttendanceExport;
+use App\Exports\PayrollExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class HrController extends Controller
 {
@@ -311,8 +315,7 @@ public function destroyLeaveType($id)
     LeaveType::findOrFail($id)->delete();
     return redirect('/hr/leave-types')->with('success', 'Leave type deleted!');
 }
-use App\Models\Payslip;
-use App\Models\Attendance;
+
 
 // Show Payroll Page
 public function payroll()
@@ -432,5 +435,53 @@ public function updateSalary(Request $request, $id)
     ));
 
     return redirect('/hr/salaries')->with('success', 'Salary updated successfully!');
+}
+
+
+// Reports Page
+public function reports()
+{
+    $months = [
+        1 => 'January', 2 => 'February', 3 => 'March',
+        4 => 'April', 5 => 'May', 6 => 'June',
+        7 => 'July', 8 => 'August', 9 => 'September',
+        10 => 'October', 11 => 'November', 12 => 'December'
+    ];
+
+    return view('hr.reports.index', compact('months'));
+}
+
+// Export Employee Report
+public function exportEmployees()
+{
+    return Excel::download(new EmployeeExport, 'employees-' . now()->format('Y-m-d') . '.xlsx');
+}
+
+// Export Attendance Report
+public function exportAttendance(Request $request)
+{
+    $request->validate([
+        'month' => 'required',
+        'year'  => 'required',
+    ]);
+
+    return Excel::download(
+        new AttendanceExport($request->month, $request->year),
+        'attendance-' . $request->month . '-' . $request->year . '.xlsx'
+    );
+}
+
+// Export Payroll Report
+public function exportPayroll(Request $request)
+{
+    $request->validate([
+        'month' => 'required',
+        'year'  => 'required',
+    ]);
+
+    return Excel::download(
+        new PayrollExport($request->month, $request->year),
+        'payroll-' . $request->month . '-' . $request->year . '.xlsx'
+    );
 }
 }
