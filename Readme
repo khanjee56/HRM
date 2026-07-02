@@ -1,0 +1,273 @@
+# 👔 HRM System — Human Resource Management
+
+A complete Human Resource Management System built with **Laravel 12**, featuring employee management, attendance tracking, leave management, payroll processing, PDF payslips, and Excel reports.
+
+---
+
+## 📸 Project Overview
+
+HRM System is a full-featured human resource management platform built for companies to manage their employees efficiently. HR managers can handle everything from employee onboarding to payroll generation, while employees have their own self-service portal to track attendance, apply for leaves, and download payslips.
+
+---
+
+## ✨ Features
+
+### 👨‍💼 HR Manager Side
+- HR Dashboard (employees, attendance, leave stats)
+- Manage Departments (Add/Edit/Delete)
+- Manage Designations (Add/Edit/Delete)
+- Complete Employee Management (Add/Edit/Delete with photo)
+- View All Employees Attendance (filter by employee/month)
+- Leave Request Management (Approve/Reject with notes)
+- Manage Leave Types
+- Payroll Generation (automatic calculation)
+- Salary Structure Management (Edit allowances/deductions)
+- PDF Payslip Generation
+- Excel Reports (Employee, Attendance, Payroll)
+
+### 👤 Employee Self-Service Portal
+- Employee Dashboard with Work Timer
+- Clock In / Clock Out System
+- Late detection (automatic status based on office time)
+- My Attendance History
+- Apply for Leave (with auto day calculation)
+- Track Leave Status (Pending/Approved/Rejected)
+- View My Payslips
+- Download Payslip as PDF
+- Edit My Profile (photo, phone, address)
+
+### 📊 Reports
+- Employee Report (Excel)
+- Monthly Attendance Report (Excel)
+- Monthly Payroll Report (Excel)
+
+---
+
+## 🛠️ Tech Stack
+
+| Technology | Usage |
+|---|---|
+| Laravel 12 | Backend Framework |
+| PHP 8.2 | Programming Language |
+| MySQL | Database |
+| Bootstrap 5 | Frontend Styling |
+| Font Awesome | Icons |
+| barryvdh/laravel-dompdf | PDF Generation |
+| maatwebsite/excel | Excel Export |
+| Carbon | Date/Time Manipulation |
+| XAMPP | Local Development Server |
+
+---
+
+## 👥 User Roles
+
+| Role | Access |
+|---|---|
+| **Super Admin** | Full system control |
+| **HR Manager** | Manage employees, attendance, leaves, payroll |
+| **Employee** | Self-service portal (attendance, leaves, payslips) |
+
+---
+
+## 🗄️ Database Structure
+
+| Table | Description |
+|---|---|
+| `users` | Login accounts (superadmin/hr/employee) |
+| `departments` | Company departments (IT, HR, Finance) |
+| `designations` | Job titles per department |
+| `employees` | Complete employee profiles |
+| `attendances` | Daily clock in/out records |
+| `leave_types` | Types of leaves (Sick, Annual, Emergency) |
+| `leaves` | Leave applications and approvals |
+| `salaries` | Employee salary structure |
+| `payslips` | Monthly generated payslips |
+
+---
+
+## 💰 Payroll Calculation Logic
+
+```
+Gross Salary    = Basic Salary + House Allowance + Transport Allowance + Medical Allowance
+Per Day Salary  = Basic Salary / Working Days in Month
+Absent Deduction = Per Day Salary × Absent Days
+Total Deductions = Tax + Other Deductions + Absent Deduction
+Net Salary      = Gross Salary - Total Deductions
+```
+
+---
+
+## ⚙️ Installation & Setup
+
+### **Requirements**
+- PHP 8.2+
+- Composer
+- MySQL
+- Node.js & npm
+- XAMPP (or any local server)
+
+---
+
+### **Step 1: Clone the Repository**
+```bash
+git clone https://github.com/khanjee56/HRM.git
+cd HRM
+```
+
+### **Step 2: Install Dependencies**
+```bash
+composer install
+npm install
+npm run build
+```
+
+### **Step 3: Environment Setup**
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+### **Step 4: Configure Database**
+Open `.env` and update:
+```env
+DB_DATABASE=hrm_system
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+### **Step 5: Set Timezone**
+In `config/app.php`:
+```php
+'timezone' => 'Asia/Karachi',
+```
+
+### **Step 6: Run Migrations & Seed Data**
+```bash
+php artisan migrate:fresh --seed
+```
+
+### **Step 7: Create Storage Link**
+```bash
+php artisan storage:link
+```
+
+### **Step 8: Run the Project**
+```bash
+php artisan serve
+```
+
+Open browser → `http://localhost:8000`
+
+---
+
+## 👤 Default Accounts (After Seeding)
+
+| Role | Email | Password |
+|---|---|---|
+| Super Admin | admin@hrm.com | 123456 |
+| HR Manager | hr@hrm.com | 123456 |
+| Employee 1 (Ali Hassan) | ali@hrm.com | 123456 |
+| Employee 2 (Sara Ahmed) | sara@hrm.com | 123456 |
+| Employee 3 (Bilal Khan) | bilal@hrm.com | 123456 |
+
+---
+
+## 📁 Project Structure
+
+```
+app/
+├── Exports/
+│   ├── EmployeeExport.php
+│   ├── AttendanceExport.php
+│   └── PayrollExport.php
+├── Http/
+│   ├── Controllers/
+│   │   ├── HrController.php
+│   │   └── EmployeeController.php
+│   └── Middleware/
+│       ├── HrMiddleware.php
+│       └── EmployeeMiddleware.php
+├── Models/
+│   ├── User.php
+│   ├── Department.php
+│   ├── Designation.php
+│   ├── Employee.php
+│   ├── Attendance.php
+│   ├── LeaveType.php
+│   ├── Leave.php
+│   ├── Salary.php
+│   └── Payslip.php
+database/
+├── migrations/
+└── seeders/
+    ├── DatabaseSeeder.php
+    └── HrmSeeder.php
+routes/
+└── web.php
+resources/views/
+├── layouts/
+│   ├── app.blade.php        (Login/Register)
+│   ├── hr.blade.php         (HR Sidebar Layout)
+│   └── employee.blade.php   (Employee Sidebar Layout)
+├── hr/
+│   ├── dashboard.blade.php
+│   ├── attendance/
+│   ├── departments/
+│   ├── designations/
+│   ├── employees/
+│   ├── leaves/
+│   ├── leave-types/
+│   ├── payroll/
+│   ├── salaries/
+│   └── reports/
+└── employee/
+    ├── dashboard.blade.php
+    ├── attendance.blade.php
+    ├── leaves.blade.php
+    ├── apply-leave.blade.php
+    ├── payslips.blade.php
+    ├── payslip-pdf.blade.php
+    └── profile.blade.php
+```
+
+---
+
+## 🔄 Agile Development (Sprint Plan)
+
+| Sprint | Feature | Status |
+|---|---|---|
+| Sprint 1 | Setup + Auth + Sidebar Layouts | ✅ Done |
+| Sprint 2 | Departments + Designations + Employees | ✅ Done |
+| Sprint 3 | Clock In/Out Attendance System | ✅ Done |
+| Sprint 4 | Leave Management | ✅ Done |
+| Sprint 5 | Payroll + Payslip PDF | ✅ Done |
+| Sprint 6 | Excel Reports | ✅ Done |
+| Sprint 7 | HR Views + Final Polish | ✅ Done |
+
+---
+
+## 🔄 Daily Git Workflow
+
+```bash
+# Before starting work
+git pull
+
+# After finishing work
+git add .
+git commit -m "describe what you did"
+git push
+```
+
+---
+
+## 👨‍💻 Developer
+
+**Haris Khan**
+- GitHub: [@khanjee56](https://github.com/khanjee56)
+- Project: BS Computer Science Student
+
+---
+
+## 📄 License
+
+This project is open source and available for learning purposes.
