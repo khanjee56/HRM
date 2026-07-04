@@ -17,14 +17,11 @@
             top: 0;
             left: 0;
             overflow-y: auto;
-            z-index: 100;
+            z-index: 1000;
+            transition: transform 0.3s ease;
         }
 
-        .sidebar-brand {
-            padding: 20px;
-            border-bottom: 1px solid #ffffff20;
-        }
-
+        .sidebar-brand { padding: 20px; border-bottom: 1px solid #ffffff20; }
         .sidebar-brand h4 { color: white; margin: 0; font-weight: bold; }
         .sidebar-brand p { color: #aaa; margin: 0; font-size: 12px; }
 
@@ -49,16 +46,72 @@
         .sidebar-menu a i { width: 20px; margin-right: 10px; }
         .sidebar-section { padding: 10px 20px 5px; color: #666; font-size: 11px; text-transform: uppercase; }
         .sidebar-divider { border-color: #ffffff20; margin: 10px 20px; }
-        .main-content { margin-left: 260px; min-height: 100vh; }
-        .topbar { background: white; padding: 15px 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        .topbar {
+            background: white;
+            padding: 15px 25px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
         .topbar h5 { margin: 0; color: #333; }
+
+        .sidebar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #333;
+            cursor: pointer;
+            margin-right: 15px;
+        }
+
         .content-area { padding: 25px; }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-260px); }
+            .sidebar.active { transform: translateX(0); }
+            .sidebar-overlay.active { display: block; }
+            .main-content { margin-left: 0 !important; }
+            .sidebar-toggle { display: block; }
+            .content-area { padding: 15px; }
+            .topbar { padding: 12px 15px; }
+            .topbar h5 { font-size: 14px; }
+        }
+
+        @media (max-width: 1024px) and (min-width: 769px) {
+            .sidebar { width: 220px; }
+            .main-content { margin-left: 220px; }
+        }
     </style>
 </head>
 <body>
 
-<!-- Sidebar -->
-<div class="sidebar">
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
     <div class="sidebar-brand">
         <h4>👔 HRM System</h4>
         <p>{{ auth()->user()->name }}</p>
@@ -104,20 +157,24 @@
         <form action="/logout" method="POST">
             @csrf
             <button type="submit" class="btn w-100 text-start"
-                    style="color:#ccc; padding: 12px 20px; background:none; border:none;">
+                    style="color:#ccc; padding:12px 20px; background:none; border:none;">
                 <i class="fas fa-sign-out-alt" style="width:20px; margin-right:10px;"></i> Logout
             </button>
         </form>
-
     </div>
 </div>
 
-<!-- Main Content -->
-<div class="main-content">
+<div class="main-content" id="mainContent">
     <div class="topbar">
-        <h5>@yield('page-title', 'Dashboard')</h5>
+        <div class="d-flex align-items-center">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h5>@yield('page-title', 'Dashboard')</h5>
+        </div>
         <div style="color:#666; font-size:14px;">
-            <i class="fas fa-user-circle"></i> {{ auth()->user()->name }}
+            <i class="fas fa-user-circle"></i>
+            <span class="d-none d-sm-inline">{{ auth()->user()->name }}</span>
         </div>
     </div>
 
@@ -140,5 +197,24 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+    }
+
+    document.querySelectorAll('.sidebar-menu a').forEach(link => {
+        link.addEventListener('click', () => {
+            if(window.innerWidth <= 768) {
+                toggleSidebar();
+            }
+        });
+    });
+</script>
+
+@stack('scripts')
+
 </body>
 </html>
